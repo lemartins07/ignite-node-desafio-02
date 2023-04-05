@@ -1,0 +1,15 @@
+#Dependencies
+node_modules
+
+#Database
+db/*.bd
+
+#Enviroment
+.env
+.env.test
+
+#Dist
+dist
+
+#Misc
+.DS_Store
