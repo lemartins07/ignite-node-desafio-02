@@ -5,8 +5,9 @@ import { knex } from '../database'
 
 export async function userRoutes(app: FastifyInstance) {
   app.get('/', async (request, reply) => {
-    await knex('sqlite_schema')
-    reply.send('Rota teste')
+    const usersResult = await knex('users').select()
+
+    return { usersResult }
   })
 
   app.post('/', async (request, reply) => {
@@ -34,7 +35,7 @@ export async function userRoutes(app: FastifyInstance) {
 
     // insert
     await knex('users').insert({
-      id: randomUUID(),
+      user_id: randomUUID(),
       name,
       email,
     })
