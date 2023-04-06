@@ -1,10 +1,11 @@
 import fastify from 'fastify'
-import { knex } from './database'
+import cookies from '@fastify/cookie'
+import { userRoutes } from './routes/users'
 
 export const app = fastify()
 
-app.get('/', async () => {
-  const tables = await knex('sqlite_schema').select('*')
+app.register(cookies)
 
-  return tables
+app.register(userRoutes, {
+  prefix: 'users',
 })
