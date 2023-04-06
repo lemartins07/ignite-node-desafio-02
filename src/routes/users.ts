@@ -19,20 +19,6 @@ export async function userRoutes(app: FastifyInstance) {
 
     const { name, email } = createUserBodySchema.parse(request.body)
 
-    // cookie
-    // let sessionId = request.cookies.sessionId
-
-    // if (!sessionId) {
-    //   sessionId = randomUUID()
-
-    //   reply.cookie('sessionId', sessionId, {
-    //     path: '/',
-    //     maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-    //   })
-    // }
-
-    // console.log(name, email)
-
     // insert
     await knex('users').insert({
       user_id: randomUUID(),
@@ -40,6 +26,25 @@ export async function userRoutes(app: FastifyInstance) {
       email,
     })
 
+    // cookie
+    let userId = request.cookies.userId
+
+    if (!userId) {
+      const result = await knex('users').select('user_id').first()
+      userId = result.user_id
+
+      reply.cookie('userId', userId, {
+        path: '/',
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+      })
+    }
+
     return reply.status(201).send()
+  })
+
+  app.delete('/', async (request, reply) => {
+    await knex('users').delete()
+
+    reply.status(204).send()
   })
 }

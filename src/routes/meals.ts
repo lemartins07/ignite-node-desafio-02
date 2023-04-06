@@ -1,6 +1,8 @@
 import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 import { knex } from '../database'
+import { checkUserIdExists } from '../middlewares/check-user-id-session-exists'
+import { randomUUID } from 'node:crypto'
 
 export async function mealsRoutes(app: FastifyInstance) {
   // READ
@@ -11,20 +13,21 @@ export async function mealsRoutes(app: FastifyInstance) {
   })
 
   // CREATE
-  app.post('/', async (request, reply) => {
+  app.post('/', { preHandler: [checkUserIdExists] }, async (request, reply) => {
     const createMealBodySchema = z.object({
       name: z.string(),
       description: z.string(),
       inDiet: z.boolean(),
-      userId: z.string(),
     })
 
-    console.log(request.body)
-    const { name, description, inDiet, userId } = createMealBodySchema.parse(
+    const userId = request.cookies.userId
+
+    const { name, description, inDiet } = createMealBodySchema.parse(
       request.body,
     )
 
     await knex('meals').insert({
+      meal_id: randomUUID(),
       name,
       description,
       in_diet: inDiet,
@@ -32,5 +35,12 @@ export async function mealsRoutes(app: FastifyInstance) {
     })
 
     return reply.status(201).send()
+  })
+
+  // DELETE ALL
+  app.delete('/all', async (request, reply) => {
+    await knex('meals').delete()
+
+    reply.status(204).send()
   })
 }
