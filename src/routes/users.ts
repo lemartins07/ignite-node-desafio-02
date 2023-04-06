@@ -45,4 +45,30 @@ export async function userRoutes(app: FastifyInstance) {
 
     reply.status(204).send()
   })
+
+  // LOGIN
+  app.post('/login', async (request, reply) => {
+    const createUserBodySchema = z.object({
+      email: z.string(),
+    })
+
+    const { email } = createUserBodySchema.parse(request.body)
+
+    // cookie
+    reply.clearCookie('userId', { path: '/' })
+
+    const result = await knex('users')
+      .where({ email })
+      .select('user_id')
+      .first()
+
+    const userId = result.user_id
+
+    reply.cookie('userId', userId, {
+      path: '/',
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    })
+
+    return reply.status(200).send('login successfully!')
+  })
 }
