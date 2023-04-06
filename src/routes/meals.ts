@@ -38,6 +38,23 @@ export async function mealsRoutes(app: FastifyInstance) {
     return { meals }
   })
 
+  // READ ONE
+  app.get('/:id', { preHandler: [checkUserIdExists] }, async (request) => {
+    const userId = request.cookies.userId
+
+    const getMealsParamsSchema = z.object({
+      id: z.string().uuid(),
+    })
+
+    const { id } = getMealsParamsSchema.parse(request.params)
+
+    const meal = await knex('meals')
+      .where({ meal_id: id, user_id: userId })
+      .select()
+
+    return { meal }
+  })
+
   // READ ALL
   app.get('/all', async (request, reply) => {
     const meals = await knex('meals').select()
