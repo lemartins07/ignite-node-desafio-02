@@ -5,21 +5,6 @@ import { checkUserIdExists } from '../middlewares/check-user-id-session-exists'
 import { randomUUID } from 'node:crypto'
 
 export async function mealsRoutes(app: FastifyInstance) {
-  // READ
-  app.get('/', async (request, reply) => {
-    const userId = request.cookies.userId
-    const meals = await knex('meals').select().where('user_id', userId)
-
-    return { meals }
-  })
-
-  // READ ALL
-  app.get('/all', async (request, reply) => {
-    const meals = await knex('meals').select()
-
-    return { meals }
-  })
-
   // CREATE
   app.post('/', { preHandler: [checkUserIdExists] }, async (request, reply) => {
     const createMealBodySchema = z.object({
@@ -44,6 +29,55 @@ export async function mealsRoutes(app: FastifyInstance) {
 
     return reply.status(201).send()
   })
+
+  // READ
+  app.get('/', async (request, reply) => {
+    const userId = request.cookies.userId
+    const meals = await knex('meals').select().where('user_id', userId)
+
+    return { meals }
+  })
+
+  // READ ALL
+  app.get('/all', async (request, reply) => {
+    const meals = await knex('meals').select()
+
+    return { meals }
+  })
+
+  // UPDATE
+  app.put(
+    '/:id',
+    { preHandler: [checkUserIdExists] },
+    async (request, reply) => {
+      const userId = request.cookies.userId
+
+      const getMealsParamsSchema = z.object({
+        id: z.string().uuid(),
+      })
+
+      const createMealBodySchema = z.object({
+        name: z.string(),
+        description: z.string(),
+        inDiet: z.boolean(),
+      })
+
+      const { id } = getMealsParamsSchema.parse(request.params)
+      const { name, description, inDiet } = createMealBodySchema.parse(
+        request.body,
+      )
+
+      await knex('meals')
+        .update({
+          name,
+          description,
+          in_diet: inDiet,
+        })
+        .where({ meal_id: id, user_id: userId })
+
+      reply.status(204).send()
+    },
+  )
 
   // DELETE ALL
   app.delete('/all', async (request, reply) => {
