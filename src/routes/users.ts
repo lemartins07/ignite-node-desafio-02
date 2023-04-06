@@ -27,22 +27,20 @@ export async function userRoutes(app: FastifyInstance) {
     })
 
     // cookie
-    let userId = request.cookies.userId
+    reply.clearCookie('userId', { path: '/' })
 
-    if (!userId) {
-      const result = await knex('users').select('user_id').first()
-      userId = result.user_id
+    const result = await knex('users').select('user_id').first()
+    const userId = result.user_id
 
-      reply.cookie('userId', userId, {
-        path: '/',
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-      })
-    }
+    reply.cookie('userId', userId, {
+      path: '/',
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    })
 
     return reply.status(201).send()
   })
 
-  app.delete('/', async (request, reply) => {
+  app.delete('/all', async (request, reply) => {
     await knex('users').delete()
 
     reply.status(204).send()
